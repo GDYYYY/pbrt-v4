@@ -61,3 +61,36 @@ contribution疑似加进film里，
 // Add camera ray's contribution to image
 camera.GetFilm().AddSample(pPixel, L, lambda, &visibleSurface, cameraSample.filterWeight);
 ```
+
+
+
+GPU:
+
+没进
+```c++
+template <typename ConcreteSampler>
+void WavefrontPathIntegrator::GenerateCameraRays(int y0, Transform movingFromCamera,
+                                                 int sampleIndex)
+```
+
+samples.cpp: template <typename ConcreteSampler> void WavefrontPathIntegrator::GenerateRaySamples(int wavefrontDepth, int sampleIndex) 
+
+
+
+camera的initMetadata是在设置透视矩阵等
+
+class Camera : public TaggedPointer<PerspectiveCamera, OrthographicCamera,
+                                    SphericalCamera, RealisticCamera> 
+class Film : public TaggedPointer<RGBFilm, GBufferFilm, SpectralFilm>
+
+而对于film.addSample这一函数只有gbufferFilm类有实现，
+因此推断taggedpointer是涵盖了括号中所有类型的，也就是一起在运行
+
+但三种film的writeImage实现完全相同
+
+
+
+## 数据存储
+在.pbrt这个场景文件中把film改成gbuffer即可存下gbufferFilm的相关数据（具体含义可见https://www.pbrt.org/users-guide-v4#images），但albedo等都没有体积的数据
+
+从GBufferFilm::AddSample中看到p(position),n(normal)等都只在visibleSurface上有效
